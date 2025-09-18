@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Careplanner (Offline)</title>
+  <meta name="theme-color" content="#0f172a"/>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <style>
+    :root{--bg:#0f172a;--ink:#e5e7eb;--muted:#94a3b8;--card:#0b1220;--ring:#2563eb;--accent:#22c55e}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);
+    color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
+    .wrap{max-width:900px;margin:0 auto;padding:20px}
+    .card{background:#0c1426;border:1px solid #1f2937;border-radius:14px;padding:18px}
+    h1{margin:0 0 8px;font-size:22px}
+    .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    a.btn,button.btn{appearance:none;text-decoration:none;background:#1f2937;color:#e5e7eb;border:1px solid #374151;
+      border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,#22c55e,#10b981);border-color:transparent;color:#052e16}
+    iframe{width:100%;height:75vh;border:1px solid #1f2937;border-radius:14px;background:#0b1220}
+    .muted{color:var(--muted);font-size:12px}
+    footer{color:#9ca3af;font-size:12px;text-align:center;margin:24px 0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Careplanner (Offline)</h1>
+      <div class="sub">Installable PWA shell. Use the embedded planner or open it in a new tab. Data stays in your browser.
+      </div>
+      <div class="row" style="margin-bottom:12px">
+        <a class="btn primary" href="./CarePlannerV1.html" target="_blank" rel="noopener">Open Full Planner ↗</a>
+        <button class="btn" id="btnInstall" hidden>Install App</button>
+      </div>
+      <iframe src="./CarePlannerV1.html" title="Careplanner"></iframe>
+      <div class="muted" style="margin-top:8px">Tip: use “Export JSON” inside the planner to back up or share a plan.</div>
+    </div>
+    <footer>Service worker provides offline support for this page and the planner file when first visited.</footer>
+  </div>
+
+<script>
+// PWA install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault(); deferredPrompt = e;
+  const b=document.getElementById('btnInstall'); b.hidden=false;
+  b.addEventListener('click', async ()=>{
+    b.disabled=true;
+    if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }
+    b.hidden=true;
+  },{once:true});
+});
+
+// Register service worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(console.error);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Careplanner (Offline) – Themed ICP (V2)</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --card:#0b1220; --ink:#e5e7eb; --accent:#22c55e; --accent-2:#60a5fa; --danger:#ef4444; --warn:#f59e0b;
+    --input:#0f172a; --ring:#2563eb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#0b1220 0%,#0f172a 100%);color:var(--ink)}
+  header{position:sticky;top:0;background:rgba(17,24,39,.9);backdrop-filter:blur(6px);z-index:5;border-bottom:1px solid #1f2937}
+  .wrap{max-width:1200px;margin:0 auto;padding:12px 16px}
+  h1{font-size:20px;margin:6px 0 2px}
+  .sub{color:var(--muted);font-size:12px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  button,.btn{background:#1f2937;color:#e5e7eb;border:1px solid #374151;border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer}
+  button:hover{border-color:#475569}
+  .btn.primary{background:linear-gradient(90deg,#22c55e,#10b981);border-color:transparent;color:#052e16}
+  .btn.blue{background:linear-gradient(90deg,#60a5fa,#3b82f6);border-color:transparent;color:#0b1220}
+  .btn.warn{background:linear-gradient(90deg,#fbbf24,#f59e0b);border-color:transparent;color:#3b1f00}
+  .btn.ghost{background:transparent;border:1px dashed #334155}
+  input,select,textarea{background:var(--input);color:var(--ink);border:1px solid #374151;border-radius:10px;padding:8px 10px;font-size:14px;outline:0}
+  input:focus,select:focus,textarea:focus{border-color:var(--ring);box-shadow:0 0 0 2px rgba(37,99,235,.25)}
+  textarea{min-height:70px;resize:vertical}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .panel{background:var(--panel);border:1px solid #1f2937;border-radius:14px;padding:14px}
+  .card{background:var(--card);border:1px solid #1f2937;border-radius:14px;padding:12px}
+  .theme{margin:12px 0;border:1px solid #1f2937;border-radius:14px;overflow:hidden}
+  .theme summary{list-style:none;cursor:pointer;padding:12px 14px;background:#0c1426;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1f2937}
+  .theme summary::-webkit-details-marker{display:none}
+  .theme h3{margin:0;font-size:15px}
+  .badge{font-size:11px;color:#a3a3a3;padding:4px 8px;background:#111827;border:1px solid #1f2937;border-radius:999px}
+  .goal{display:grid;gap:10px;margin:12px 0;padding:12px;border-radius:12px;background:#0b1220;border:1px solid #172036}
+  .goal .row{margin:0}
+  .muted{color:var(--muted);font-size:12px}
+  .chip{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid #334155;background:#0c1426;color:#cbd5e1}
+  .right{margin-left:auto}
+  .danger{color:#fecaca}
+  .footer{color:#9ca3af;font-size:12px;text-align:center;margin:20px 0}
+  .hidden{display:none}
+  .spacer{height:8px}
+  .theme-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 0}
+  .table{width:100%;border-collapse:collapse}
+  .table th,.table td{border-bottom:1px solid #1f2937;padding:8px 6px;text-align:left;font-size:13px;vertical-align:top}
+  .pill-ok{background:#052e16;color:#86efac;border:1px solid #14532d}
+  .pill-warn{background:#3b2300;color:#fde68a;border:1px solid #713f12}
+  .pill-risk{background:#3b0a0a;color:#fecaca;border:1px solid #7f1d1d}
+  .inline{display:inline-flex;gap:8px;align-items:center}
+  .small{font-size:12px}
+  .sticky-tools{position:sticky;bottom:0;background:rgba(17,24,39,.9);backdrop-filter:blur(6px);border-top:1px solid #1f2937;padding:10px;z-index:4}
+  /* MDT additions */
+  .badge.soon{background:#3b2300;color:#fde68a;border:1px solid #713f12}
+  .badge.due{background:#3b0a0a;color:#fecaca;border:1px solid #7f1d1d}
+  .roles{display:flex;flex-wrap:wrap;gap:8px}
+  .roles label{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid #334155;border-radius:999px;background:#0c1426;font-size:12px}
+  .switch{display:inline-flex;align-items:center;gap:8px}
+  .switch input[type="checkbox"]{width:18px;height:18px}
+  .kv{display:grid;grid-template-columns:180px 1fr;gap:10px;align-items:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Careplanner (Offline) — Themed ICP</h1>
+    <div class="sub">Works fully offline. Data saved to your browser (localStorage). Export/Import JSON for sharing/backup.</div>
+    <div class="row">
+      <button class="btn primary" id="btnExport">Export JSON</button>
+      <label class="btn blue" for="fileImport">Import JSON</label>
+      <input id="fileImport" type="file" accept="application/json" class="hidden" />
+      <button id="btnNew" class="btn ghost">New Plan</button>
+      <div class="inline small">
+        <span class="chip">Autosave <strong id="saveState">—</strong></span>
+        <span class="chip" id="lastSaved">Last saved: —</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Person / identifiers -->
+  <section class="panel">
+    <h2 style="margin-top:0">Person Details</h2>
+    <div class="grid-3">
+      <div><label>Full name<br/><input id="person_name" placeholder="e.g., Jane Murphy" /></label></div>
+      <div><label>Date of birth<br/><input id="person_dob" type="date" /></label></div>
+      <div><label>CHI / MRN<br/><input id="person_mrn" placeholder="ID / MRN" /></label></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div><label>Key worker / RNP<br/><input id="person_keyworker" placeholder="Name" /></label></div>
+      <div><label>Consultant / RMP<br/><input id="person_consultant" placeholder="Name" /></label></div>
+      <div><label>Review date<br/><input id="plan_review_date" type="date" /></label></div>
+    </div>
+  </section>
+
+  <!-- Story / strengths -->
+  <section class="panel" style="margin-top:12px">
+    <h2 style="margin-top:0">Story & Strengths</h2>
+    <div class="grid-2">
+      <div><label>What matters to you?<br/><textarea id="story_what_matters" placeholder="Values, preferences, priorities…"></textarea></label></div>
+      <div><label>Strengths & supports<br/><textarea id="story_strengths" placeholder="Personal strengths, family, community, services…"></textarea></label></div>
+    </div>
+  </section>
+
+  <!-- Plan settings -->
+  <section class="panel" style="margin-top:12px">
+    <h2 style="margin-top:0">Plan Settings</h2>
+    <div class="grid-3">
+      <div>
+        <label>Care setting<br/>
+          <select id="set_care">
+            <option value="Acute">Acute (MDT within 7 days)</option>
+            <option value="Continuing" selected>Continuing care (review at least 6-monthly)</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label class="switch">Interim plan created?
+          <input id="set_interim" type="checkbox"/>
+        </label>
+        <div class="muted small">Use when documenting an initial ICP pending full MDT.</div>
+      </div>
+      <div class="kv">
+        <span class="muted">Next required MDT review</span>
+        <span>
+          <span id="mdt_due_badge" class="badge">—</span>
+          <span id="mdt_due_text" class="muted"></span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- My Work -->
+  <section class="panel" style="margin-top:12px">
+    <h2 style="margin-top:0">My Work</h2>
+    <div class="row">
+      <select id="work_owner"></select>
+      <button id="work_refresh" class="btn">Show</button>
+    </div>
+    <div class="spacer"></div>
+    <table class="table" id="work_table">
+      <thead><tr><th>Theme</th><th>Goal</th><th>Status</th><th>Owner</th><th>Updated</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Team -->
+  <section class="panel" style="margin-top:12px">
+    <h2 style="margin-top:0">Team</h2>
+    <div class="muted small">Maintain your MDT for this plan. Save & reuse teams as templates. Owners on goals pull from here.</div>
+    <div class="row" style="margin-top:8px">
+      <input id="tm_name" placeholder="Name" style="flex:2">
+      <input id="tm_role" placeholder="Role (e.g., OT, Psych, Family)">
+      <input id="tm_org" placeholder="Organisation">
+      <input id="tm_email" placeholder="Email">
+      <input id="tm_phone" placeholder="Phone">
+      <input id="tm_poc" placeholder="Point-of-contact group (optional)">
+      <label class="switch small"><input id="tm_isFamily" type="checkbox"> Family/Supporter</label>
+      <label class="switch small"><input id="tm_isExternal" type="checkbox"> External</label>
+      <button id="tm_add" class="btn">Add member</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="row">
+      <select id="tm_template_pick" style="min-width:240px"></select>
+      <button id="tm_apply" class="btn blue">Apply template</button>
+      <input id="tm_template_name" placeholder="Save current team as template name…">
+      <button id="tm_save_template" class="btn ghost">Save template</button>
+    </div>
+    <div class="spacer"></div>
+    <table class="table" id="tm_table">
+      <thead><tr><th>Name</th><th>Role</th><th>Org</th><th>Contact</th><th>Tags</th><th>PoC</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Themes / goals -->
+  <section id="themes"></section>
+
+  <!-- MDT reviews -->
+  <section class="panel" style="margin-top:12px">
+    <h2 style="margin-top:0">MDT Reviews</h2>
+    <div class="muted small">Record formal MDT development/review of the ICP: attendees, service user involvement, offer of copy, observations/leave, significant risks, and EDD.</div>
+    <div class="card" style="margin-top:8px">
+      <div class="grid-3">
+        <label>Date &amp; time<br/><input id="mdt_dt" type="datetime-local"/></label>
+        <label>Service user present?<br/>
+          <select id="mdt_su_present"><option>Yes</option><option>No (document reason)</option></select>
+        </label>
+        <label>Offer a copy of ICP?<br/>
+          <select id="mdt_offer_copy"><option>Yes</option><option>No (document reason)</option></select>
+        </label>
+      </div>
+      <div class="grid-3" style="margin-top:8px">
+        <label>If SU not present / copy not offered — reason<br/>
+          <input id="mdt_reason" placeholder="Brief reason"/>
+        </label>
+        <label>Current observation level / leave<br/>
+          <input id="mdt_obs_leave" placeholder="e.g., Q15 / Ward leave level"/>
+        </label>
+        <label>Estimated discharge date (EDD)<br/>
+          <input id="mdt_edd" type="date"/>
+        </label>
+      </div>
+      <div style="margin-top:8px">
+        <div class="muted small" style="margin-bottom:6px">Attendees</div>
+        <div id="mdt_roles" class="roles"></div>
+      </div>
+      <div class="grid-2" style="margin-top:8px">
+        <label>Significant risks / decisions<br/>
+          <textarea id="mdt_risks" placeholder="Key risks, decisions, rationales"></textarea>
+        </label>
+        <label>Notes / care &amp; treatment updates<br/>
+          <textarea id="mdt_notes" placeholder="Goal updates, interventions, resources"></textarea>
+        </label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="mdt_add" class="btn">+ Add MDT review</button>
+        <span class="muted">These entries feed the “next required review” ticker.</span>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <table class="table" id="mdt_table">
+      <thead><tr><th>Date</th><th>SU present</th><th>Copy offered</th><th>Attendees</th><th>Obs/Leave</th><th>EDD</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Linked services -->
+  <section class="panel" style="margin-top:12px">
+    <h2 style="margin-top:0">Linked Services</h2>
+    <div class="muted">Add services linked to this plan (e.g., ARCHES, Jigsaw, CIPC). Keep PII minimal.</div>
+    <div class="row" style="margin-top:8px">
+      <input id="svc_name" placeholder="Service name" style="flex:2" />
+      <input id="svc_contact" placeholder="Contact details" style="flex:2" />
+      <input id="svc_notes" placeholder="Notes / reason" style="flex:3" />
+      <button id="svc_add" class="btn">Add</button>
+    </div>
+    <div class="spacer"></div>
+    <table class="table" id="svc_table">
+      <thead><tr><th>Service</th><th>Contact</th><th>Notes</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Appointments -->
+  <section class="panel" style="margin-top:12px">
+    <h2 style="margin-top:0">Appointments</h2>
+    <div class="row">
+      <input id="apt_date" type="datetime-local" />
+      <input id="apt_with" placeholder="With (e.g., OT / Psych / GP)" />
+      <input id="apt_loc" placeholder="Location" />
+      <input id="apt_notes" placeholder="Notes" style="flex:2" />
+      <button id="apt_add" class="btn">Add</button>
+    </div>
+    <div class="spacer"></div>
+    <table class="table" id="apt_table">
+      <thead><tr><th>Date/Time</th><th>With</th><th>Location</th><th>Notes</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Risks -->
+  <section class="panel" style="margin-top:12px">
+    <h2 style="margin-top:0">Risks & Safety</h2>
+    <div class="grid-2">
+      <div>
+        <label>Current risks / early warning signs<br/>
+          <textarea id="risk_current" placeholder="Self-harm, suicide, exploitation, relapse triggers, falls risk, wandering, etc."></textarea>
+        </label>
+      </div>
+      <div>
+        <label>Mitigations / safety strategies<br/>
+          <textarea id="risk_mitigations" placeholder="Who does what, when; environmental safety; de-escalation steps; contacts."></textarea>
+        </label>
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div><label>Risk status<br/>
+        <select id="risk_status">
+          <option value="Stable">Stable</option>
+          <option value="Watchful">Watchful</option>
+          <option value="Elevated">Elevated</option>
+          <option value="Acute">Acute</option>
+        </select>
+      </label></div>
+      <div><label>Last review<br/><input id="risk_last" type="date" /></label></div>
+      <div><label>Next review<br/><input id="risk_next" type="date" /></label></div>
+    </div>
+  </section>
+
+  <!-- Sticky tools -->
+  <div class="sticky-tools wrap">
+    <div class="row">
+      <span class="muted">Quick actions</span>
+      <button class="btn primary" id="btnSave">Save now</button>
+      <button class="btn blue" id="btnExport2">Export JSON</button>
+      <button class="btn blue" id="btnMeeting">Start MDT Meeting</button>
+      <button class="btn warn" id="btnPrint">Print</button>
+      <span class="right muted">File name on export: <code id="fnamePreview">careplan.json</code></span>
+    </div>
+  </div>
+
+  <div class="footer">Careplanner (Offline) — All data remains in your browser until you export a JSON file.</div>
+</main>
+
+<script>
+/* ====== Data model ====== */
+const THEMES = [
+  "Mental Health","Physical Health","Diet / Nutrition","Self-Care / ADLs","Cognitive","Occupational",
+  "Financial issues","Substance Misuse","Engagement","Accommodation","Safety","Support Network","Spiritual",
+  "Sexual needs","Educational/Vocational","Others"
+];
+
+const ATTENDEE_ROLES = [
+  "Consultant Psychiatrist","Registrar/NCHD","Key Worker/RNP","Nurse (ward/CMHN)",
+  "Occupational Therapist","Psychologist","Social Worker","Dietitian","Peer Support Worker","Other"
+];
+
+const DEFAULT_PLAN = () => ({
+  meta: { version: 3, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  settings: { careSetting: "Continuing", interimPlan: { created:false, at:"" } },
+  person: { name:"", dob:"", mrn:"", keyworker:"", consultant:"", reviewDate:"" },
+  story: { whatMatters:"", strengths:"" },
+  themes: THEMES.reduce((acc,t)=>{acc[t]=[]; return acc;}, {}),
+  teams: { currentTeamId:"", members:[], templates:[] },
+  services: [], appointments: [],
+  mdtReviews: [],
+  risk: { status:"Stable", current:"", mitigations:"", last:"", next:"" }
+});
+
+let PLAN = DEFAULT_PLAN();
+
+/* ====== Helpers ====== */
+const $ = id => document.getElementById(id);
+const qs = (sel,root=document) => root.querySelector(sel);
+const qsa = (sel,root=document) => Array.from(root.querySelectorAll(sel));
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
+function escapeHtml(s){ return (s||"").replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function download(filename, text){
+  const blob = new Blob([text], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+}
+function daysBetween(a,b){ const A=new Date(a), B=new Date(b); return Math.round((B-A)/(1000*60*60*24)); }
+
+/* ====== Persistence ====== */
+function setSaveMeta(){
+  PLAN.meta.updatedAt = new Date().toISOString();
+  $("saveState").textContent = "saved";
+  $("lastSaved").textContent = "Last saved: " + new Date().toLocaleString();
+  const safeName = (PLAN.person.name || "careplan").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  $("fnamePreview").textContent = `${safeName || 'careplan'}.json`;
+}
+function autosave(){ localStorage.setItem("careplanner.plan", JSON.stringify(PLAN)); setSaveMeta(); }
+function loadFromLocal(){
+  const raw = localStorage.getItem("careplanner.plan");
+  if(!raw) return false;
+  try{ PLAN = JSON.parse(raw); setSaveMeta(); return true; }catch{ return false; }
+}
+
+/* ====== Migration ====== */
+function migratePlanV2toV3(){
+  // Ensure teams block
+  PLAN.teams ||= { currentTeamId:"", members:[], templates:[] };
+  // Goals: owner/progress
+  Object.values(PLAN.themes||{}).forEach(list=>{
+    (list||[]).forEach(g=>{
+      if(!g.owner) g.owner = { memberId:"", name: g.responsible||"" };
+      if(!g.progress) g.progress = [];
+    });
+  });
+  // Version bump
+  PLAN.meta.version = 3;
+}
+
+/* ====== Derived ====== */
+function nextRequiredReview(plan){
+  const care = plan.settings?.careSetting || "Continuing";
+  const cadenceDays = (care==="Acute") ? 7 : 183; // ~6 months
+  const last = (plan.mdtReviews.slice().sort((x,y)=> (x.when||"") > (y.when||"") ? -1:1))[0];
+  const lastWhen = last?.when || plan.meta.createdAt;
+  const due = new Date(new Date(lastWhen).getTime() + cadenceDays*24*60*60*1000);
+  return { cadenceDays, lastWhen, due };
+}
+
+/* ====== Render basic ====== */
+function renderSettings(){
+  $("set_care").value = PLAN.settings.careSetting || "Continuing";
+  $("set_interim").checked = !!PLAN.settings.interimPlan.created;
+  // MDT roles chips (once)
+  const rolesWrap = $("mdt_roles");
+  if(rolesWrap && rolesWrap.childElementCount===0){
+    ATTENDEE_ROLES.forEach((r,i)=>{
+      const id = "role_"+i;
+      const lab = document.createElement("label");
+      lab.innerHTML = `<input type="checkbox" id="${id}" data-role="${r}"/> ${r}`;
+      rolesWrap.appendChild(lab);
+    });
+  }
+  updateMdtDueBadge();
+}
+function updateMdtDueBadge(){
+  const due = nextRequiredReview(PLAN);
+  const now = new Date();
+  const daysLeft = daysBetween(now, due.due);
+  const badge = $("mdt_due_badge");
+  const txt = $("mdt_due_text");
+  badge.className = "badge";
+  if(daysLeft <= 0){ badge.classList.add("due"); badge.textContent = "DUE"; }
+  else if(daysLeft <= 3){ badge.classList.add("soon"); badge.textContent = daysLeft+" days"; }
+  else { badge.textContent = daysLeft+" days"; }
+  txt.textContent = " (by "+ due.due.toLocaleDateString() +")";
+}
+function renderPerson(){
+  $("person_name").value = PLAN.person.name;
+  $("person_dob").value = PLAN.person.dob || "";
+  $("person_mrn").value = PLAN.person.mrn;
+  $("person_keyworker").value = PLAN.person.keyworker;
+  $("person_consultant").value = PLAN.person.consultant;
+  $("plan_review_date").value = PLAN.person.reviewDate || "";
+}
+function renderStory(){
+  $("story_what_matters").value = PLAN.story.whatMatters;
+  $("story_strengths").value = PLAN.story.strengths;
+}
+
+/* ====== Team UI ====== */
+function renderTeam(){
+  const tb = $("tm_table").querySelector("tbody");
+  tb.innerHTML = "";
+  (PLAN.teams.members||[]).forEach((m,i)=>{
+    const contact = [m.email, m.phone].filter(Boolean).join(" · ");
+    const tags = [m.isFamily?"Family":null, m.isExternal?"External":null].filter(Boolean).join(", ");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(m.name||"")}</td>
+      <td>${escapeHtml(m.role||"")}</td>
+      <td>${escapeHtml(m.org||"")}</td>
+      <td>${escapeHtml(contact)}</td>
+      <td>${escapeHtml(tags)}</td>
+      <td>${escapeHtml(m.pocGroup||"")}</td>
+      <td><button data-i="${i}" class="btn small danger">Remove</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.onclick = (e)=>{
+    const b = e.target.closest("button"); if(!b) return;
+    PLAN.teams.members.splice(+b.dataset.i,1); autosave(); renderTeam(); refreshOwnerPickers(); renderWorkOwners(); renderWork();
+  };
+  // templates picker
+  const sel = $("tm_template_pick");
+  sel.innerHTML = `<option value="">— pick saved team —</option>` + 
+    (PLAN.teams.templates||[]).map(t=>`<option value="${t.id}">${escapeHtml(t.name||"Team")}</option>`).join("");
+}
+$("tm_add").addEventListener("click", ()=>{
+  const m = {
+    id: uid(),
+    name:$("tm_name").value.trim(),
+    role:$("tm_role").value.trim(),
+    org:$("tm_org").value.trim(),
+    email:$("tm_email").value.trim(),
+    phone:$("tm_phone").value.trim(),
+    pocGroup:$("tm_poc").value.trim(),
+    isFamily:$("tm_isFamily").checked,
+    isExternal:$("tm_isExternal").checked
+  };
+  if(!m.name){ alert("Enter a name"); return; }
+  PLAN.teams.members.push(m);
+  ["tm_name","tm_role","tm_org","tm_email","tm_phone","tm_poc"].forEach(id=>$(id).value="");
+  $("tm_isFamily").checked = $("tm_isExternal").checked = false;
+  autosave(); renderTeam(); refreshOwnerPickers(); renderWorkOwners(); renderWork();
+});
+$("tm_save_template").addEventListener("click", ()=>{
+  const name = $("tm_template_name").value.trim() || `Team ${new Date().toLocaleDateString()}`;
+  const tpl = { id: uid(), name, members: JSON.parse(JSON.stringify(PLAN.teams.members||[])) };
+  PLAN.teams.templates ||= [];
+  PLAN.teams.templates.push(tpl);
+  PLAN.teams.currentTeamId = tpl.id;
+  $("tm_template_name").value = "";
+  autosave(); renderTeam();
+});
+$("tm_apply").addEventListener("click", ()=>{
+  const id = $("tm_template_pick").value;
+  if(!id) return;
+  const tpl = (PLAN.teams.templates||[]).find(t=>t.id===id);
+  if(!tpl) return;
+  PLAN.teams.members = JSON.parse(JSON.stringify(tpl.members||[]));
+  PLAN.teams.currentTeamId = id;
+  autosave(); renderTeam(); refreshOwnerPickers(); renderWorkOwners(); renderWork();
+});
+
+/* ====== Owner picker refresh ====== */
+function refreshOwnerPickers(){
+  qsa(".ownerSel").forEach(sel=>{
+    const cur = sel.value;
+    const opts = [`<option value="">— Select team member —</option>`]
+      .concat((PLAN.teams.members||[]).map(m=>`<option value="${m.id}">${escapeHtml(m.name)} — ${escapeHtml(m.role||"")}</option>`));
+    sel.innerHTML = opts.join("");
+    if(PLAN.teams.members.some(m=>m.id===cur)) sel.value = cur;
+  });
+}
+
+/* ====== Work list ====== */
+function renderWorkOwners(){
+  const sel = $("work_owner");
+  const people = [{id:"", name:"— All owners —"}]
+    .concat((PLAN.teams.members||[]).map(m=>({id:m.id, name:`${m.name} — ${m.role||""}`})));
+  sel.innerHTML = people.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+}
+function renderWork(){
+  const selId = $("work_owner").value;
+  const tb = $("work_table").querySelector("tbody");
+  tb.innerHTML = "";
+  THEMES.forEach(theme=>{
+    (PLAN.themes[theme]||[]).forEach(g=>{
+      const match = !selId ? true : (g.owner?.memberId===selId);
+      if(!match) return;
+      const ownerLabel = g.owner?.memberId ? (PLAN.teams.members.find(m=>m.id===g.owner.memberId)?.name||"") : (g.owner?.name||"");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(theme)}</td>
+        <td>${escapeHtml(g.title||"(untitled)")}</td>
+        <td>${escapeHtml(g.status||"")}</td>
+        <td>${escapeHtml(ownerLabel)}</td>
+        <td>${g.updatedAt?new Date(g.updatedAt).toLocaleString():"—"}</td>
+      `;
+      tb.appendChild(tr);
+    });
+  });
+}
+$("work_refresh").addEventListener("click", renderWork);
+
+/* ====== Goals/theming ====== */
+function touchGoal(g){ g.updatedAt = new Date().toISOString(); autosave(); }
+
+function goalRow(theme, g){
+  const wrap = document.createElement("div");
+  wrap.className = "goal";
+  wrap.dataset.id = g.id;
+
+  wrap.innerHTML = `
+    <div class="grid-3">
+      <div>
+        <label>Goal (SMART)<br/>
+          <input class="g_title" placeholder="Short description" value="${escapeHtml(g.title||"")}"/>
+        </label>
+      </div>
+      <div>
+        <label>Owner<br/>
+          <div class="row" style="gap:6px">
+            <select class="ownerSel"></select>
+            <input class="ownerFree" placeholder="Or type a name" value="${escapeHtml(g.owner?.name||g.responsible||"")}"/>
+          </div>
+        </label>
+      </div>
+      <div class="grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <label>Start<br/><input class="g_start" type="date" value="${g.start||""}"/></label>
+        <label>Review<br/><input class="g_review" type="date" value="${g.review||""}"/></label>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <label>Actions / Steps<br/>
+        <textarea class="g_steps" placeholder="Tasks, frequency, dosage, prompts, aids…">${escapeHtml(g.steps||"")}</textarea>
+      </label>
+      <label>Measures of success / Outcomes<br/>
+        <textarea class="g_outcomes" placeholder="How we’ll know it’s working">${escapeHtml(g.outcomes||"")}</textarea>
+      </label>
+    </div>
+
+    <div class="row">
+      <select class="g_status">
+        <option ${g.status==="Not started"?"selected":""}>Not started</option>
+        <option ${g.status==="In progress"?"selected":""}>In progress</option>
+        <option ${g.status==="On hold"?"selected":""}>On hold</option>
+        <option ${g.status==="Completed"?"selected":""}>Completed</option>
+      </select>
+      <span class="chip">Theme: ${theme}</span>
+      <span class="muted">Last updated: ${g.updatedAt?new Date(g.updatedAt).toLocaleString():"—"}</span>
+      <span class="right inline">
+        <button class="btn ghost small" data-action="duplicate">Duplicate</button>
+        <button class="btn small" data-action="up">↑</button>
+        <button class="btn small" data-action="down">↓</button>
+        <button class="btn small danger" data-action="delete">Delete</button>
+      </span>
+    </div>
+  `;
+
+  // Elements
+  const titleEl = qs(".g_title", wrap);
+  const startEl = qs(".g_start", wrap);
+  const reviewEl = qs(".g_review", wrap);
+  const stepsEl = qs(".g_steps", wrap);
+  const outcomesEl = qs(".g_outcomes", wrap);
+  const statusEl = qs(".g_status", wrap);
+  const ownerSel = qs(".ownerSel", wrap);
+  const ownerFree = qs(".ownerFree", wrap);
+
+  // Populate owner select
+  function populateOwnerSel(){
+    const opts = [`<option value="">— Select team member —</option>`]
+      .concat((PLAN.teams.members||[]).map(m=>`<option value="${m.id}">${escapeHtml(m.name)} — ${escapeHtml(m.role||"")}</option>`));
+    ownerSel.innerHTML = opts.join("");
+    if(g.owner?.memberId) ownerSel.value = g.owner.memberId;
+  }
+  populateOwnerSel();
+
+  // Bindings
+  titleEl.addEventListener("input", ()=>{ g.title = titleEl.value; touchGoal(g); });
+  startEl.addEventListener("change", ()=>{ g.start = startEl.value; touchGoal(g); });
+  reviewEl.addEventListener("change", ()=>{ g.review = reviewEl.value; touchGoal(g); });
+  stepsEl.addEventListener("input", ()=>{ g.steps = stepsEl.value; touchGoal(g); });
+  outcomesEl.addEventListener("input", ()=>{ g.outcomes = outcomesEl.value; touchGoal(g); });
+  statusEl.addEventListener("change", ()=>{ g.status = statusEl.value; touchGoal(g); });
+
+  ownerSel.addEventListener("change", ()=>{
+    g.owner = { memberId: ownerSel.value, name: ownerSel.value ? (PLAN.teams.members.find(m=>m.id===ownerSel.value)?.name||"") : (ownerFree.value||"") };
+    touchGoal(g);
+  });
+  ownerFree.addEventListener("input", ()=>{
+    g.owner = { memberId: ownerSel.value, name: ownerFree.value };
+    touchGoal(g);
+  });
+
+  // Controls (delete/move/duplicate)
+  wrap.addEventListener("click", (e)=>{
+    const btn = e.target.closest("button"); if(!btn) return;
+    const action = btn.dataset.action;
+    const list = PLAN.themes[theme];
+    const idx = list.findIndex(x=>x.id===g.id);
+    if(idx<0) return;
+    if(action==="delete"){ list.splice(idx,1); autosave(); renderThemes(); renderWork(); }
+    else if(action==="up"){ if(idx>0){ [list[idx-1],list[idx]]=[list[idx],list[idx-1]]; autosave(); renderThemes(); } }
+    else if(action==="down"){ if(idx<list.length-1){ [list[idx+1],list[idx]]=[list[idx],list[idx+1]]; autosave(); renderThemes(); } }
+    else if(action==="duplicate"){
+      const copy = JSON.parse(JSON.stringify(g)); copy.id = uid(); copy.updatedAt = new Date().toISOString();
+      list.splice(idx+1,0,copy); autosave(); renderThemes();
+    }
+  });
+
+  /* Progress log */
+  const prog = document.createElement("div");
+  prog.className = "card";
+  prog.innerHTML = `
+    <div class="row">
+      <input class="progNote" placeholder="Quick progress update — will be timestamped">
+      <select class="progStatus">
+        <option ${g.status==="Not started"?"selected":""}>Not started</option>
+        <option ${g.status==="In progress"?"selected":""}>In progress</option>
+        <option ${g.status==="On hold"?"selected":""}>On hold</option>
+        <option ${g.status==="Completed"?"selected":""}>Completed</option>
+      </select>
+      <button class="btn small addProg">Add update</button>
+    </div>
+    <div class="spacer"></div>
+    <table class="table small"><thead><tr><th>When</th><th>By</th><th>Note</th></tr></thead><tbody class="progBody"></tbody></table>
+  `;
+  wrap.appendChild(prog);
+
+  const progNote = qs(".progNote", prog);
+  const progStatus = qs(".progStatus", prog);
+  const progBody = qs(".progBody", prog);
+  const addBtn = qs(".addProg", prog);
+
+  function renderProg(){
+    progBody.innerHTML = "";
+    (g.progress||[]).slice().sort((a,b)=>b.atISO.localeCompare(a.atISO)).forEach(p=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${new Date(p.atISO).toLocaleString()}</td><td>${escapeHtml(p.by||"")}</td><td>${escapeHtml(p.note||"")}</td>`;
+      progBody.appendChild(tr);
+    });
+  }
+  renderProg();
+
+  addBtn.addEventListener("click", ()=>{
+    const note = progNote.value.trim();
+    if(!note) return;
+    const by = PLAN.person.keyworker || (PLAN.teams.members[0]?.name||"");
+    g.progress ||= [];
+    g.progress.push({ id: uid(), atISO:new Date().toISOString(), by, note, status: progStatus.value });
+    g.status = progStatus.value;
+    progNote.value = "";
+    touchGoal(g); renderProg(); renderWork();
+  });
+
+  return wrap;
+}
+
+function renderThemes(){
+  const container = $("themes");
+  container.innerHTML = "";
+  THEMES.forEach(theme=>{
+    const details = document.createElement("details");
+    details.className = "theme";
+    details.open = false;
+
+    const goals = PLAN.themes[theme] || [];
+    const count = goals.length;
+
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<h3>${theme}</h3> <span class="badge">${count} goal${count===1?"":"s"}</span>`;
+    details.appendChild(summary);
+
+    const inner = document.createElement("div");
+    inner.className = "card";
+
+    // Theme tools
+    const tools = document.createElement("div");
+    tools.className = "theme-tools";
+    tools.innerHTML = `
+      <button class="btn" data-theme="${theme}" data-action="add">+ Add goal</button>
+      <button class="btn ghost" data-theme="${theme}" data-action="expand">Expand all</button>
+      <button class="btn ghost" data-theme="${theme}" data-action="collapse">Collapse all</button>
+      <span class="muted">Tip: goals autosave as you type.</span>
+    `;
+    inner.appendChild(tools);
+
+    // Goals list
+    const listWrap = document.createElement("div");
+    listWrap.dataset.theme = theme;
+    goals.forEach(g=> listWrap.appendChild(goalRow(theme,g)));
+    inner.appendChild(listWrap);
+
+    details.appendChild(inner);
+    container.appendChild(details);
+  });
+
+  // Theme tool events
+  qsa(".theme-tools").forEach(t=>{
+    t.addEventListener("click",(e)=>{
+      const btn = e.target.closest("button"); if(!btn) return;
+      const theme = btn.dataset.theme;
+      const action = btn.dataset.action;
+      if(action==="add"){
+        const g = { id: uid(), title:"", owner:{memberId:"",name:""}, start:"", review:"", steps:"", outcomes:"", status:"Not started", progress:[], updatedAt:new Date().toISOString() };
+        PLAN.themes[theme].push(g);
+        autosave(); renderThemes(); refreshOwnerPickers(); renderWork();
+        setTimeout(()=>{
+          const d = qsa(".theme").find(el=>qs("h3",el).textContent===theme);
+          if(d){ d.open = true; d.scrollIntoView({behavior:"smooth", block:"center"}); }
+        },50);
+      }else if(action==="expand"){
+        const d = t.closest(".theme"); if(d) d.open = true;
+      }else if(action==="collapse"){
+        const d = t.closest(".theme"); if(d) d.open = false;
+      }
+    });
+  });
+
+  refreshOwnerPickers();
+}
+
+/* ====== MDT ====== */
+function readCheckedRoles(){ return qsa("#mdt_roles input[type=checkbox]:checked").map(c=>c.dataset.role); }
+function clearMdtInputs(){
+  $("mdt_dt").value = "";
+  $("mdt_su_present").value = "Yes";
+  $("mdt_offer_copy").value = "Yes";
+  $("mdt_reason").value = "";
+  $("mdt_obs_leave").value = "";
+  $("mdt_edd").value = "";
+  qsa("#mdt_roles input[type=checkbox]").forEach(c=>c.checked=false);
+  $("mdt_risks").value = "";
+  $("mdt_notes").value = "";
+}
+function renderMdt(){
+  const tb = $("mdt_table").querySelector("tbody");
+  tb.innerHTML = "";
+  PLAN.mdtReviews.forEach((r,i)=>{
+    const tr = document.createElement("tr");
+    const dateDisp = r.when ? new Date(r.when).toLocaleString() : "—";
+    tr.innerHTML = `
+      <td>${escapeHtml(dateDisp)}</td>
+      <td>${escapeHtml(r.suPresent||"—")}</td>
+      <td>${escapeHtml(r.copyOffered||"—")}</td>
+      <td>${escapeHtml((r.attendees||[]).join(", "))}</td>
+      <td>${escapeHtml(r.obsLeave||"")}</td>
+      <td>${escapeHtml(r.edd||"")}</td>
+      <td><button data-i="${i}" class="btn small danger">Remove</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.onclick = (e)=>{
+    const b = e.target.closest("button"); if(!b) return;
+    PLAN.mdtReviews.splice(+b.dataset.i,1);
+    autosave(); renderMdt(); updateMdtDueBadge();
+  };
+}
+$("mdt_add").addEventListener("click", ()=>{
+  const when = $("mdt_dt").value;
+  if(!when){ alert("Please add date & time."); return; }
+  const entry = {
+    id: uid(),
+    when,
+    suPresent: $("mdt_su_present").value,
+    copyOffered: $("mdt_offer_copy").value,
+    reason: $("mdt_reason").value.trim(),
+    obsLeave: $("mdt_obs_leave").value.trim(),
+    edd: $("mdt_edd").value || "",
+    attendees: readCheckedRoles(),
+    risks: $("mdt_risks").value.trim(),
+    notes: $("mdt_notes").value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  PLAN.mdtReviews.push(entry);
+  autosave(); renderMdt(); updateMdtDueBadge(); clearMdtInputs();
+});
+
+/* ====== Services & appointments ====== */
+function renderServices(){
+  const tb = $("svc_table").querySelector("tbody");
+  tb.innerHTML = "";
+  PLAN.services.forEach((s,i)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(s.name||"")}</td>
+      <td>${escapeHtml(s.contact||"")}</td>
+      <td>${escapeHtml(s.notes||"")}</td>
+      <td><button data-i="${i}" class="btn small danger">Remove</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.onclick = (e)=>{
+    const b = e.target.closest("button"); if(!b) return;
+    PLAN.services.splice(+b.dataset.i,1); autosave(); renderServices();
+  };
+}
+$("svc_add").addEventListener("click",()=>{
+  const name = $("svc_name").value.trim(); if(!name) return;
+  PLAN.services.push({name, contact:$("svc_contact").value.trim(), notes:$("svc_notes").value.trim()});
+  $("svc_name").value = $("svc_contact").value = $("svc_notes").value = "";
+  autosave(); renderServices();
+});
+
+function renderAppointments(){
+  const tb = $("apt_table").querySelector("tbody");
+  tb.innerHTML = "";
+  PLAN.appointments.forEach((a,i)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(a.when||"")}</td>
+      <td>${escapeHtml(a.with||"")}</td>
+      <td>${escapeHtml(a.loc||"")}</td>
+      <td>${escapeHtml(a.notes||"")}</td>
+      <td><button data-i="${i}" class="btn small danger">Remove</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.onclick = (e)=>{
+    const b = e.target.closest("button"); if(!b) return;
+    PLAN.appointments.splice(+b.dataset.i,1); autosave(); renderAppointments();
+  };
+}
+$("apt_add").addEventListener("click",()=>{
+  const when = $("apt_date").value; if(!when) return;
+  PLAN.appointments.push({when, with:$("apt_with").value.trim(), loc:$("apt_loc").value.trim(), notes:$("apt_notes").value.trim()});
+  $("apt_date").value = $("apt_with").value = $("apt_loc").value = $("apt_notes").value = "";
+  autosave(); renderAppointments();
+});
+
+/* ====== Risk ====== */
+function renderRisk(){
+  $("risk_status").value = PLAN.risk.status || "Stable";
+  $("risk_current").value = PLAN.risk.current || "";
+  $("risk_mitigations").value = PLAN.risk.mitigations || "";
+  $("risk_last").value = PLAN.risk.last || "";
+  $("risk_next").value = PLAN.risk.next || "";
+}
+
+/* ====== Meeting mode ====== */
+function* enumerateGoals(){
+  for(const theme of THEMES){
+    for(const g of (PLAN.themes[theme]||[])){
+      yield { theme, g };
+    }
+  }
+}
+function startMeetingMode(){
+  const when = prompt("Meeting date & time (YYYY-MM-DDTHH:MM)", new Date().toISOString().slice(0,16));
+  if(!when) return;
+  const su = confirm("Was the service user present? OK=Yes, Cancel=No");
+  const copyOffered = confirm("Offer a copy of ICP? OK=Yes, Cancel=No");
+  let changed = 0;
+
+  for(const {theme, g} of enumerateGoals()){
+    const title = g.title || "(untitled)";
+    const needs = confirm(`Update goal in ${theme}: "${title}" ?\nOK to add a quick update; Cancel to skip.`);
+    if(!needs) continue;
+    const note = prompt("Update note (progress / change):", "");
+    if(note){
+      g.progress ||= [];
+      const by = PLAN.person.keyworker || (PLAN.teams.members[0]?.name||"");
+      g.progress.push({ id: uid(), atISO:new Date().toISOString(), by, note, status: g.status||"In progress" });
+      g.updatedAt = new Date().toISOString();
+      changed++;
+    }
+  }
+
+  PLAN.mdtReviews.push({
+    id: uid(), when, suPresent: su?"Yes":"No", copyOffered: copyOffered?"Yes":"No",
+    reason: su?"":"Not present — see minutes",
+    obsLeave: "", edd: "", attendees: (PLAN.teams.members||[]).slice(0,6).map(m=>m.role?`${m.name} (${m.role})`:m.name),
+    risks: "", notes: `MDT Meeting Mode used; ${changed} goal(s) updated.`,
+    createdAt: new Date().toISOString()
+  });
+
+  autosave(); renderMdt(); renderThemes(); renderWork(); updateMdtDueBadge();
+  alert(`Meeting recorded. ${changed} goal(s) updated.`);
+}
+$("btnMeeting").addEventListener("click", startMeetingMode);
+
+/* ====== Bind simple inputs ====== */
+$("set_care").addEventListener("change",(e)=>{ PLAN.settings.careSetting = e.target.value; autosave(); updateMdtDueBadge(); });
+$("set_interim").addEventListener("change",(e)=>{ PLAN.settings.interimPlan.created = e.target.checked; PLAN.settings.interimPlan.at = e.target.checked ? new Date().toISOString() : ""; autosave(); });
+
+["person_name","person_dob","person_mrn","person_keyworker","person_consultant","plan_review_date"].forEach(id=>{
+  $(id).addEventListener("input",(e)=>{
+    const v = e.target.value;
+    if(id==="person_name") PLAN.person.name = v;
+    if(id==="person_dob") PLAN.person.dob = v;
+    if(id==="person_mrn") PLAN.person.mrn = v;
+    if(id==="person_keyworker") PLAN.person.keyworker = v;
+    if(id==="person_consultant") PLAN.person.consultant = v;
+    if(id==="plan_review_date") PLAN.person.reviewDate = v;
+    autosave();
+  });
+});
+$("story_what_matters").addEventListener("input",e=>{ PLAN.story.whatMatters = e.target.value; autosave(); });
+$("story_strengths").addEventListener("input",e=>{ PLAN.story.strengths = e.target.value; autosave(); });
+
+/* ====== Export / Import / Print ====== */
+$("btnExport").addEventListener("click", exportPlan);
+$("btnExport2").addEventListener("click", exportPlan);
+function exportPlan(){
+  const safeName = (PLAN.person.name || "careplan").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  download(`${safeName||'careplan'}.json`, JSON.stringify(PLAN, null, 2));
+}
+$("fileImport").addEventListener("change",(e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  const rdr = new FileReader();
+  rdr.onload = () => {
+    try{
+      const obj = JSON.parse(rdr.result);
+      if(!obj || !obj.themes){ alert("Invalid file: missing themes"); return; }
+      PLAN = obj;
+      migratePlanV2toV3();
+      autosave(); hydrate();
+    }catch(err){
+      alert("Could not read JSON file.");
+    }
+  };
+  rdr.readAsText(f); e.target.value = "";
+});
+$("btnNew").addEventListener("click",()=>{
+  if(confirm("Start a new blank plan? This keeps your current plan on disk if you’ve exported it. Unsaved local copy will be replaced.")){
+    PLAN = DEFAULT_PLAN(); autosave(); hydrate();
+  }
+});
+$("btnSave").addEventListener("click", autosave);
+$("btnPrint").addEventListener("click", ()=>window.print());
+
+/* ====== Hydration ====== */
+function hydrate(){
+  renderPerson();
+  renderStory();
+  renderSettings();
+  renderTeam();
+  renderWorkOwners();
+  renderThemes();
+  renderServices();
+  renderAppointments();
+  renderRisk();
+  renderMdt();
+  renderWork();
+  refreshOwnerPickers();
+}
+
+/* ====== Init ====== */
+(function init(){
+  const ok = loadFromLocal();
+  if(!ok) autosave();
+  migratePlanV2toV3();
+  hydrate();
+  $("saveState").textContent = "on";
+  $("lastSaved").textContent = "Last saved: " + new Date().toLocaleString();
+})();
+</script>
+</body>
+</html>
