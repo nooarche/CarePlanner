@@ -23,6 +23,8 @@ export function mountClinical(root){
   const showPrint = ()=>{
     const html = buildComposite();
     panel.innerHTML = `<div class="print-section">${html}</div>`;
+    // audit
+    try { auditLog({ event:'ICP_PRINT', subject:'current_plan', details:{ format:'HTML+print' }, actor: (window.cp?.session?.user || 'local') }); } catch {}
     window.print();
   };
   root.querySelector('#tabRisk').addEventListener('click', showRisk);
