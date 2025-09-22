@@ -42,3 +42,9 @@ export async function getJSON(key){
   const s = await idb.get(key);
   try { return s ? JSON.parse(s) : null; } catch { return null; }
 }
+// [[HANDLE: CORE_IDB_JSON_HELPERS]]
+export async function setJSON(key, obj){ return idb.set(key, JSON.stringify(obj)); }
+export async function getJSON(key){
+  const s = await idb.get(key);
+  try { return s ? JSON.parse(s) : null; } catch { return null; }
+}
