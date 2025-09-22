@@ -9,7 +9,9 @@ export function routeTo(id) {
   if (id === "first-run") {
     import("./ui/screens/first-run.js").then(m => m.mountFirstRun(app));
   } else if (id === "admin") {
-    import("./ui/screens/admin.js").then(m => m.mountAdmin(app, {}, {}));
+  const user = window.cp?.session?.user || { role:'superuser' }; // until you wire real users
+  try { requireRole(user, ['admin','superuser']); } catch { alert('Admin only'); return; }
+  import("./ui/screens/admin.js").then(m => m.mountAdmin(app, {}, {}));
   } else if (id === "clinical") {
     import("./ui/screens/clinical.js").then(m => m.mountClinical(app));
   } else {
