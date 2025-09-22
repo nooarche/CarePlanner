@@ -1,15 +1,22 @@
-// [[HANDLE: AUDIT_CORE]]
-import { idb } from './idb.js'; // your existing idb wrapper
-import { sha256hex } from './crypto.js'; // if you have one; else add a tiny helper below
+// [[HANDLE: AUDIT_CORE_KV]]
+import { idb } from './idb.js';
 
-const AUDIT_STORE = 'audit_log'; // ensure store exists in your idb init
-
-async function getTail(){
-  const tail = await idb.get('audit_tail_hash');
-  return tail || 'GENESIS';
+// monotonic sequence in KV: audit_seq -> "N"
+async function nextSeq(){
+  const cur = parseInt(await idb.get('audit_seq') || '0', 10);
+  const nxt = isNaN(cur) ? 1 : cur+1;
+  await idb.set('audit_seq', String(nxt));
+  return nxt;
 }
 
-async function setTail(h){ await idb.set('audit_tail_hash', h); }
+// cheap chain: prev hash stored in 'audit_tail', entries keyed as 'audit:N'
+async function sha256hex(str){
+  const d = new TextEncoder().encode(str);
+  const b = await crypto.subtle.digest('SHA-256', d);
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function getTail(){ return (await idb.get('audit_tail')) || 'GENESIS'; }
+async function setTail(h){ return idb.set('audit_tail', h); }
 
 export async function auditLog({event, subject, details, actor}){
   const now = new Date().toISOString();
@@ -17,21 +24,18 @@ export async function auditLog({event, subject, details, actor}){
   const entry = { now, event, subject, details, actor, prev };
   const body = JSON.stringify(entry);
   const chain = await sha256hex(prev + '|' + body);
-  const rec = { ...entry, chain };
-  await idb.add(AUDIT_STORE, JSON.stringify(rec)); // add/append
+  const seq = await nextSeq();
+  await idb.set(`audit:${seq}`, JSON.stringify({ ...entry, chain, seq }));
   await setTail(chain);
-  return rec;
+  return { seq, chain };
 }
 
-// Optional: export bundle for QA/inspection
-export async function exportAudit(){
-  const all = await idb.getAll(AUDIT_STORE);
-  return '[' + all.join(',\n') + ']';
-}
-
-// Minimal sha256 helper if needed:
-export async function sha256hex(str){
-  const enc = new TextEncoder().encode(str);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+export async function exportAuditBundle(){
+  // find all audit:* keys (kv has no list, so scan a reasonable range or track max seq)
+  const max = parseInt(await idb.get('audit_seq') || '0', 10);
+  const rows = [];
+  for (let i=1; i<=max; i++){
+    const s = await idb.get(`audit:${i}`); if (s) rows.push(s);
+  }
+  return '[' + rows.join(',\n') + ']';
 }
