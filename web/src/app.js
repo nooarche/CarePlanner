@@ -2,6 +2,7 @@
 import { initTheme } from "./utils/theme.js";
 import { getJSON } from "./core/idb.js";
 import { requireRole } from "./core/authz.js";
+import { initIdleLock, enableQuickHide, lock, unlock } from "./core/idlelock.js";
 
 export function routeTo(id) {
   const app = document.getElementById("app");
