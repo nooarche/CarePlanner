@@ -1,0 +1,20 @@
+
+.mhact-layout { display:flex; min-height:100vh; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+.mhact-sidebar { width: 320px; background:#0b5; color:white; padding: 1rem; }
+.mhact-sidebar h2 { margin-top:0; }
+.mhact-sidebar nav a { display:block; padding:.5rem .25rem; color:white; text-decoration:none; border-radius:.25rem; }
+.mhact-sidebar nav a:hover { background: rgba(255,255,255,.15);}
+.mhact-main { flex:1; padding: 1rem 2rem; }
+.mhact-toolbar { display:flex; gap:.5rem; align-items:center; position:sticky; top:0; background:white; padding:.5rem 0; border-bottom:1px solid #eee;}
+.mhact-toolbar button { padding:.5rem .75rem; }
+.mhact-form-section { border:1px solid #eee; border-radius:.5rem; padding:1rem; margin:1rem 0; }
+.mhact-field { display:flex; gap: .75rem; margin:.5rem 0; align-items:center; }
+.mhact-field label { width: 260px; font-weight:600; }
+.mhact-field input[type=text], .mhact-field input[type=date], .mhact-field input[type=datetime-local], .mhact-field input[type=number], .mhact-field textarea, .mhact-field select { flex:1; padding:.4rem; }
+.mhact-required::after { content:" *"; color:#c00; }
+.mhact-error { color:#c00; font-size:.9rem; }
+.print-header, .print-footer { display:none; }
+@media print {
+  .mhact-sidebar, .mhact-toolbar { display:none !important; }
+  .print-header, .print-footer { display:block; }
+}

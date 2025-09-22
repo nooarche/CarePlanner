@@ -1,0 +1,81 @@
+{
+  "id": "clinical.risk",
+  "title": "Risk Assessment \u2014 SAMPLE",
+  "type": "form",
+  "sections": [
+    {
+      "title": "Screening",
+      "fields": [
+        {
+          "key": "risk.suicide",
+          "label": "Suicide/Self-harm Risk",
+          "type": "select",
+          "options": [
+            "Low",
+            "Moderate",
+            "High",
+            "Critical"
+          ],
+          "required": true
+        },
+        {
+          "key": "risk.violence",
+          "label": "Violence Risk",
+          "type": "select",
+          "options": [
+            "Low",
+            "Moderate",
+            "High",
+            "Critical"
+          ],
+          "required": true
+        },
+        {
+          "key": "risk.vulnerability",
+          "label": "Vulnerability",
+          "type": "select",
+          "options": [
+            "Low",
+            "Moderate",
+            "High",
+            "Critical"
+          ],
+          "required": true
+        }
+      ]
+    },
+    {
+      "title": "Notes & Plan",
+      "fields": [
+        {
+          "key": "risk.notes",
+          "label": "Notes",
+          "type": "textarea",
+          "required": true
+        },
+        {
+          "key": "risk.mitigation",
+          "label": "Mitigation Plan",
+          "type": "textarea",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "required",
+      "fields": [
+        "risk.suicide",
+        "risk.violence",
+        "risk.vulnerability",
+        "risk.notes",
+        "risk.mitigation"
+      ]
+    }
+  ],
+  "print": {
+    "header": "ui/templates/header.html",
+    "footer": "ui/templates/footer.html"
+  }
+}

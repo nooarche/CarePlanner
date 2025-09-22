@@ -1,0 +1,64 @@
+{
+  "id": "statutory.seclusion.order",
+  "title": "Seclusion Order (Form 15) \u2014 SAMPLE",
+  "type": "form",
+  "sections": [
+    {
+      "title": "Order",
+      "fields": [
+        {
+          "key": "start.time",
+          "label": "Start Time",
+          "type": "datetime",
+          "required": true
+        },
+        {
+          "key": "authorising.clinician",
+          "label": "Authorising Clinician",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason for Seclusion",
+          "type": "textarea",
+          "required": true
+        }
+      ]
+    },
+    {
+      "title": "Monitoring",
+      "fields": [
+        {
+          "key": "reviews.interval",
+          "label": "Review Interval (mins)",
+          "type": "number",
+          "min": 5,
+          "max": 60,
+          "required": true
+        },
+        {
+          "key": "termination.time",
+          "label": "Termination Time",
+          "type": "datetime",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "required",
+      "fields": [
+        "start.time",
+        "authorising.clinician",
+        "reason",
+        "reviews.interval"
+      ]
+    }
+  ],
+  "print": {
+    "header": "ui/templates/header.html",
+    "footer": "ui/templates/footer.html"
+  }
+}

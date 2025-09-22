@@ -1,0 +1,46 @@
+{
+  "categories": [
+    {
+      "id": "statutory",
+      "title": "Statutory Forms (MHC)",
+      "forms": [
+        {
+          "id": "statutory.form7.renewal_order",
+          "title": "Renewal Order (Form 7)",
+          "file": "schema/statutory/form7_renewal_order.json"
+        },
+        {
+          "id": "statutory.form10.meds_over_3_months",
+          "title": "Medication >3 months without consent (Form 10)",
+          "file": "schema/statutory/form10_meds_over_3_months.json"
+        },
+        {
+          "id": "statutory.seclusion.order",
+          "title": "Seclusion Order (Form 15) \u2014 Sample",
+          "file": "schema/statutory/form15_seclusion_order.json"
+        }
+      ]
+    },
+    {
+      "id": "clinical",
+      "title": "Clinical Practice Forms",
+      "forms": [
+        {
+          "id": "clinical.icp",
+          "title": "Individual Care Plan (ICP)",
+          "file": "schema/clinical/icp.json"
+        },
+        {
+          "id": "clinical.risk",
+          "title": "Risk Assessment",
+          "file": "schema/clinical/risk_assessment.json"
+        },
+        {
+          "id": "clinical.obs_leave",
+          "title": "Observation & Leave Record",
+          "file": "schema/clinical/observation_leave.json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "clinical.obs_leave",
+  "title": "Observation & Leave Record \u2014 SAMPLE",
+  "type": "form",
+  "sections": [
+    {
+      "title": "Observation Level / Leave",
+      "fields": [
+        {
+          "key": "obs.level",
+          "label": "Observation Level",
+          "type": "select",
+          "options": [
+            "Special 1:1 nursing (requires daily Consultant review)",
+            "30 minute nursing observations",
+            "Hourly nursing observations",
+            "Accompanied Leave (specify with whom)",
+            "Unaccompanied Leave"
+          ],
+          "required": true
+        },
+        {
+          "key": "leave.accompanied.with",
+          "label": "If accompanied, with whom?",
+          "type": "text"
+        },
+        {
+          "key": "trigger.risk_prompt",
+          "label": "Prompt risk reassessment on save",
+          "type": "info",
+          "text": "Changing observation/leave level will prompt a Risk Assessment update and ICP review."
+        }
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "required",
+      "fields": [
+        "obs.level"
+      ]
+    }
+  ],
+  "events": {
+    "onSave": [
+      {
+        "action": "emit",
+        "event": "obsLevelChanged",
+        "args": [
+          "obs.level",
+          "leave.accompanied.with"
+        ]
+      }
+    ]
+  },
+  "print": {
+    "header": "ui/templates/header.html",
+    "footer": "ui/templates/footer.html"
+  }
+}

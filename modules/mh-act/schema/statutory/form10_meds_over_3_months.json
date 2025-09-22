@@ -1,0 +1,83 @@
+{
+  "id": "statutory.form10.meds_over_3_months",
+  "title": "Medication > 3 months without consent (Form 10) \u2014 SAMPLE",
+  "type": "form",
+  "sections": [
+    {
+      "title": "Patient",
+      "fields": [
+        {
+          "key": "patient.name",
+          "label": "Patient Name",
+          "type": "text",
+          "required": true,
+          "autofill": "patient.name"
+        },
+        {
+          "key": "patient.dob",
+          "label": "DOB",
+          "type": "date",
+          "required": true,
+          "autofill": "patient.dob"
+        }
+      ]
+    },
+    {
+      "title": "Treatment",
+      "fields": [
+        {
+          "key": "medication.list",
+          "label": "Medication(s)",
+          "type": "table",
+          "columns": [
+            "Name",
+            "Dose",
+            "Route",
+            "Frequency"
+          ],
+          "required": true
+        },
+        {
+          "key": "first.consultant.approval",
+          "label": "Consultant Approval",
+          "type": "checkbox",
+          "required": true
+        },
+        {
+          "key": "second.opinion.psych",
+          "label": "Second Consultant Psychiatrist Authorisation",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "title": "Capacity & Consent Notes",
+      "fields": [
+        {
+          "key": "capacity.functional_assessment",
+          "label": "Functional Capacity Assessment (notes)",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 1500
+        }
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "required",
+      "fields": [
+        "patient.name",
+        "patient.dob",
+        "first.consultant.approval",
+        "second.opinion.psych",
+        "capacity.functional_assessment"
+      ]
+    }
+  ],
+  "print": {
+    "header": "ui/templates/header.html",
+    "footer": "ui/templates/footer.html"
+  }
+}

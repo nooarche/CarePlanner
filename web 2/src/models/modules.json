@@ -1,0 +1,16 @@
+{
+  "modules": [
+    {
+      "id": "risk",
+      "label": "Risk V4"
+    },
+    {
+      "id": "actions",
+      "label": "Care Actions"
+    },
+    {
+      "id": "print",
+      "label": "Print"
+    }
+  ]
+}

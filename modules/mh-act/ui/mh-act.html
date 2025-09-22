@@ -1,0 +1,32 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Mental Health Act — Module</title>
+  <link rel="stylesheet" href="mh-act.css"/>
+</head>
+<body>
+  <div id="app" class="mhact-layout">
+    <aside class="mhact-sidebar">
+      <h2>Mental Health Act</h2>
+      <nav id="formList"></nav>
+    </aside>
+    <main class="mhact-main">
+      <header class="mhact-toolbar">
+        <button id="btnSave">Save Draft</button>
+        <button id="btnValidate">Validate</button>
+        <button id="btnPrint">Print / PDF</button>
+        <span id="status"></span>
+      </header>
+      <section id="formTitle"></section>
+      <section id="formContainer"></section>
+    </main>
+  </div>
+  <script src="components/formRenderer.js"></script>
+  <script src="components/validator.js"></script>
+  <script src="components/storage.js"></script>
+  <script src="mh-act.js"></script>
+</body>
+</html>

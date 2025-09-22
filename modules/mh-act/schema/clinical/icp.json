@@ -1,0 +1,91 @@
+{
+  "id": "clinical.icp",
+  "title": "Individual Care Plan (ICP) \u2014 SAMPLE",
+  "type": "form",
+  "sections": [
+    {
+      "title": "Overview",
+      "fields": [
+        {
+          "key": "patient.voice",
+          "label": "Voice of the Patient",
+          "type": "textarea",
+          "required": true
+        },
+        {
+          "key": "mdt.attendees",
+          "label": "MDT Attendees",
+          "type": "chips",
+          "required": true
+        },
+        {
+          "key": "review.date",
+          "label": "Next Review Date",
+          "type": "date",
+          "required": true
+        }
+      ]
+    },
+    {
+      "title": "Goals & Interventions",
+      "fields": [
+        {
+          "key": "goals",
+          "label": "Goals",
+          "type": "repeat",
+          "template": [
+            {
+              "key": "goal.text",
+              "label": "Goal",
+              "type": "text",
+              "required": true
+            },
+            {
+              "key": "interventions",
+              "label": "Interventions",
+              "type": "textarea",
+              "required": true
+            },
+            {
+              "key": "responsible",
+              "label": "Responsible (people/teams)",
+              "type": "chips",
+              "required": true
+            },
+            {
+              "key": "due",
+              "label": "Due Date",
+              "type": "date",
+              "required": true
+            },
+            {
+              "key": "status",
+              "label": "Status",
+              "type": "select",
+              "options": [
+                "Due",
+                "Ongoing",
+                "Completed"
+              ],
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "required",
+      "fields": [
+        "patient.voice",
+        "mdt.attendees",
+        "review.date"
+      ]
+    }
+  ],
+  "print": {
+    "header": "ui/templates/header.html",
+    "footer": "ui/templates/footer.html"
+  }
+}
