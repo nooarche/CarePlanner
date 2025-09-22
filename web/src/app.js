@@ -1,6 +1,7 @@
 // [[HANDLE: ROUTER + THEME_INIT]]
 import { initTheme } from "./utils/theme.js";
 import { getJSON } from "./core/idb.js";
+import { requireRole } from "./core/authz.js";
 
 export function routeTo(id) {
   const app = document.getElementById("app");
