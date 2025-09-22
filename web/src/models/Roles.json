@@ -1,1 +1,8 @@
-{ "defaultRoles": ["Consultant Psychiatrist","Psychiatry Team","NCHD","Staff Nurse","CMHN","Dietician","Occupational Therapist","Social Worker","Psychologist","Admin"] }
+// [[HANDLE: TEAM_ADMIN_UI]]
+import Roles from "../../models/Roles.json" assert { type: "json" };
+
+/** @param {HTMLElement} root @param {TeamMember[]} team @param {(t:TeamMember[])=>void} onChange */
+export function renderTeamAdmin(root, team, onChange) {
+  root.innerHTML = `…tiny table template…`;
+  // only: read inputs, update team[], call onChange. Nothing else here.
+}
