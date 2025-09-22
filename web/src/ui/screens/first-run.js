@@ -1,10 +1,29 @@
 // [[HANDLE: FIRST_RUN_SCREEN]]
 import { firstRunSetup, unlockAndLoad, saveNow } from '../../core/storage.js';
+import { setJSON, getJSON } from '../../core/idb.js';
+import { constantTimeEquals, guardAttempts, registerFailure, registerSuccess } from '../../utils/secure.js';
+
+const BOOTSTRAP_SECRET = "parasite-primal-circling-unveiling-gab-shuffle-share-clarify-diagnosis";
+const BOOTSTRAP_K = 'bootstrap_meta';
+
+async function isBootstrapComplete(){
+  const meta = await getJSON(BOOTSTRAP_K);
+  return !!meta?.bootstrapComplete;
+}
 
 export function mountFirstRun(root){
   root.innerHTML = `
     <h2 class="h2">CarePlanner – First-time setup</h2>
-    <div class="card">
+
+    <div id="bootstrapCard" class="card">
+      <h3 class="h3">Bootstrap</h3>
+      <p>Enter the one-time bootstrap passphrase to continue.</p>
+      <input id="bsSecret" type="password" autocomplete="off" class="input" placeholder="Enter passphrase">
+      <button id="bsBtn" class="button">Unlock</button>
+      <p id="bsMsg" class="small" aria-live="polite"></p>
+    </div>
+
+    <div id="setupCard" class="card" style="display:none">
       <p>This will set a master password (Superuser) and create a data file.</p>
       <div class="row">
         <div class="col-6">
@@ -17,75 +36,101 @@ export function mountFirstRun(root){
         </div>
       </div>
       <div class="row">
-        <div class="col-8">
-          <label>Choose data file name</label>
-          <input id="fname" value="CarePlanner.cpf">
-        </div>
-        <div class="col-4">
-          <label>&nbsp;</label>
-          <button class="button" id="choosePath">Choose save location…</button>
+        <div class="col-12">
+          <label>CarePlanner data file location</label>
+          <input id="path" type="text" readonly placeholder="Will prompt to pick/save .cpf" class="input">
         </div>
       </div>
       <div class="stack">
-        <button class="button primary" id="btnSetup">Set up CarePlanner</button>
+        <button id="btnPick" class="button secondary">Choose / Create .cpf file</button>
+        <button id="btnSave" class="button primary">Create & Save</button>
       </div>
-      <p class="small">A small keyfile will also be written to this device for extra protection.</p>
     </div>
 
     <div class="card">
-      <h3 class="h3">Already set up?</h3>
+      <h3 class="h3">Unlock existing</h3>
       <div class="row">
-        <div class="col-6">
-          <label>Enter master password to unlock</label>
-          <input id="pwUnlock" type="password" autocomplete="current-password">
+        <div class="col-8">
+          <input id="pwUnlock" type="password" placeholder="Master password">
         </div>
-        <div class="col-6">
-          <label>&nbsp;</label>
-          <button class="button" id="btnUnlock">Unlock</button>
+        <div class="col-4">
+          <button id="btnUnlock" class="button">Unlock</button>
         </div>
       </div>
     </div>
   `;
 
-  let chosenName = 'CarePlanner.cpf';
-  document.getElementById('choosePath').addEventListener('click', async ()=>{
-    try{
-      if (!window.showSaveFilePicker) { alert('Your browser does not support choosing a file path. It will save to a private app folder.'); return; }
-      const handle = await window.showSaveFilePicker({
-        suggestedName: document.getElementById('fname').value || 'CarePlanner.cpf',
-        types: [{ description:'CarePlanner File', accept:{ 'application/json':['.cpf'] }}]
-      });
-      // Persist handle and name via firstRunSetup
-      chosenName = handle.name;
-      // store handle for later by calling firstRunSetup at final step
-      alert('Location chosen. Finish setup to save the file.');
-      window.__cp_chosenHandle = handle;
-    }catch(e){ console.warn(e); }
-  });
+  const $ = (id)=>root.querySelector(id);
 
-  document.getElementById('btnSetup').addEventListener('click', async ()=>{
-    const p1 = document.getElementById('pw1').value;
-    const p2 = document.getElementById('pw2').value;
-    const name = document.getElementById('fname').value || chosenName;
-    if(p1.length < 10){ alert('Please use a longer password (10+ characters).'); return; }
-    if(p1 !== p2){ alert('Passwords do not match.'); return; }
-    // mark user as superuser
-    window.cp = window.cp || { state:{ data:{} } };
-    window.cp.state.data.users = window.cp.state.data.users || {};
-    window.cp.state.data.users['superuser'] = { role:'superuser', created:new Date().toISOString() };
-    // if handle chosen, store it in IDB
-    if (window.__cp_chosenHandle){
-      const { idb } = await import('../../core/idb.js');
-      await idb.set('file_handle', window.__cp_chosenHandle);
+  async function showCorrectPane(){
+    if (await isBootstrapComplete()){
+      $('#bootstrapCard').style.display='none';
+      $('#setupCard').style.display='';
+    } else {
+      $('#bootstrapCard').style.display='';
+      $('#setupCard').style.display='none';
     }
-    await firstRunSetup({ password:p1, fileName:name });
-    alert('Setup complete. Remember your password!');
-    location.hash = '#/clinical';
-    location.reload();
+  }
+  showCorrectPane();
+
+  // Bootstrap gate
+  $('#bsBtn').addEventListener('click', async ()=>{
+    const input = $('#bsSecret').value.trim();
+    try{
+      guardAttempts();
+      const ok = constantTimeEquals(input, BOOTSTRAP_SECRET);
+      if (!ok) {
+        registerFailure();
+        $('#bsMsg').textContent = "Incorrect passphrase.";
+        $('#bsSecret').value = "";
+        $('#bsSecret').focus();
+        return;
+      }
+      registerSuccess();
+      await setJSON(BOOTSTRAP_K, { bootstrapComplete: true, t: Date.now() });
+      $('#bsMsg').textContent = "Unlocked. Continue with master password setup below.";
+      showCorrectPane();
+    }catch(e){
+      $('#bsMsg').textContent = e.message;
+    }
   });
 
-  document.getElementById('btnUnlock').addEventListener('click', async ()=>{
-    const p = document.getElementById('pwUnlock').value;
+  // File picker
+  $('#btnPick').addEventListener('click', async ()=>{
+    if ('showSaveFilePicker' in window){
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'careplanner-data.cpf',
+        types: [{ description:'CarePlanner Encrypted File', accept: {'application/json':['.cpf']} }]
+      });
+      $('#path').value = handle.name || 'careplanner-data.cpf';
+      // storage.js will remember handle internally (where supported)
+      window.__cp_handle = handle;
+    } else {
+      alert('Using internal storage (OPFS) on this browser.');
+      $('#path').value = '/careplanner/data.cpf (OPFS)';
+    }
+  });
+
+  // Create new master + data file
+  $('#btnSave').addEventListener('click', async ()=>{
+    const p1 = $('#pw1').value, p2 = $('#pw2').value;
+    if (p1.length < 12) return alert('Please use at least 12 characters.');
+    if (p1 !== p2) return alert('Passwords do not match.');
+    try{
+      await firstRunSetup(p1, window.__cp_handle); // respects your existing storage flow
+      await saveNow(); // initial write
+      alert('Created. You can now use the Clinical tab.');
+      location.hash = '#/clinical';
+      location.reload();
+    }catch(e){
+      console.error(e);
+      alert('Setup failed: ' + e.message);
+    }
+  });
+
+  // Unlock existing
+  $('#btnUnlock').addEventListener('click', async ()=>{
+    const p = $('#pwUnlock').value;
     try{
       await unlockAndLoad(p);
       alert('Unlocked.');
