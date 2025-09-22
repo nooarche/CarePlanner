@@ -1,3 +1,6 @@
+// Simple build stamp — bump this whenever you deploy
+window.__CP_VERSION = "CarePlanner v0.3.1 • 2025-09-22T20:00Z";
+
 // [[HANDLE: ROUTER + THEME_INIT]]
 import { initTheme } from "./utils/theme.js";
 import { getJSON } from "./core/idb.js";
