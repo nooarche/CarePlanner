@@ -1,0 +1,32 @@
+{
+  "modules": [
+    {
+      "id": "icp",
+      "label": "Integrated Care Plan"
+    },
+    {
+      "id": "risk",
+      "label": "Local Risk Assessment"
+    },
+    {
+      "id": "mdt",
+      "label": "MDT Review"
+    },
+    {
+      "id": "obsleave",
+      "label": "Observations & Leave"
+    },
+    {
+      "id": "print",
+      "label": "Save & Print"
+    },
+    {
+      "id": "referrals",
+      "label": "Referrals & Open Services"
+    },
+    {
+      "id": "discharge",
+      "label": "Discharge Planning"
+    }
+  ]
+}

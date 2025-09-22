@@ -1,0 +1,88 @@
+{
+  "id": "statutory.form7.renewal_order",
+  "title": "Renewal Order (Form 7) \u2014 SAMPLE",
+  "type": "form",
+  "sections": [
+    {
+      "title": "Patient & Admission",
+      "fields": [
+        {
+          "key": "patient.name",
+          "label": "Patient Name",
+          "type": "text",
+          "required": true,
+          "autofill": "patient.name"
+        },
+        {
+          "key": "patient.dob",
+          "label": "Date of Birth",
+          "type": "date",
+          "required": true,
+          "autofill": "patient.dob"
+        },
+        {
+          "key": "patient.mrn",
+          "label": "MRN",
+          "type": "text",
+          "required": true,
+          "autofill": "patient.mrn"
+        },
+        {
+          "key": "admission.date",
+          "label": "Admission Date",
+          "type": "date",
+          "required": true,
+          "autofill": "admission.date"
+        }
+      ]
+    },
+    {
+      "title": "Renewal Details",
+      "fields": [
+        {
+          "key": "order.duration",
+          "label": "Duration",
+          "type": "select",
+          "options": [
+            "3 months",
+            "6 months",
+            "12 months"
+          ],
+          "required": true
+        },
+        {
+          "key": "consultant.name",
+          "label": "Consultant Psychiatrist",
+          "type": "text",
+          "required": true,
+          "autofill": "team.consultant"
+        },
+        {
+          "key": "grounds.summary",
+          "label": "Grounds Summary",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 1500
+        }
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "required",
+      "fields": [
+        "patient.name",
+        "patient.dob",
+        "patient.mrn",
+        "admission.date",
+        "order.duration",
+        "consultant.name",
+        "grounds.summary"
+      ]
+    }
+  ],
+  "print": {
+    "header": "ui/templates/header.html",
+    "footer": "ui/templates/footer.html"
+  }
+}
