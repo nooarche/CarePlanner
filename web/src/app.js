@@ -1,5 +1,7 @@
 // [[HANDLE: ROUTER + THEME_INIT]]
 import { initTheme } from "./utils/theme.js";
+import { getJSON } from "./core/idb.js";
+
 export function routeTo(id) {
   const app = document.getElementById("app");
   if (!app) return;
@@ -13,10 +15,17 @@ export function routeTo(id) {
     app.textContent = "Home (temporary)";
   }
 }
-window.addEventListener("DOMContentLoaded", () => {
+
+async function hideFirstRunIfBootstrapped(){
+  const meta = await getJSON('bootstrap_meta');
+  if (meta?.bootstrapComplete) document.getElementById("linkFirst")?.remove();
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
   initTheme();
-  document.getElementById("linkFirst").onclick = e => { e.preventDefault(); routeTo("first-run"); };
-  document.getElementById("linkAdmin").onclick = e => { e.preventDefault(); routeTo("admin"); };
-  document.getElementById("linkClinical").onclick = e => { e.preventDefault(); routeTo("clinical"); };
+  await hideFirstRunIfBootstrapped();
+  document.getElementById("linkFirst")?.addEventListener('click', e => { e.preventDefault(); routeTo("first-run"); });
+  document.getElementById("linkAdmin").addEventListener('click', e => { e.preventDefault(); routeTo("admin"); });
+  document.getElementById("linkClinical").addEventListener('click', e => { e.preventDefault(); routeTo("clinical"); });
   routeTo("home");
 });
