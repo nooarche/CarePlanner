@@ -11,6 +11,14 @@
   <title>CarePlanner Admin Shell</title>
   <link rel="stylesheet" href="assets/hse.css">
   <link rel="stylesheet" href="assets/theme-hse.css">
+  <button id="btnHardReload" class="button ghost" title="Force-refresh assets">Reload</button>
+    <script type="module">
+      document.getElementById('btnHardReload')?.addEventListener('click', () => {
+        const u = new URL(location.href);
+        u.searchParams.set('cachebust', Date.now().toString());
+        location.replace(u.toString());
+      });
+    </script>
 </head>
 <body>
   <h1>CarePlanner Admin Shell</h1>
