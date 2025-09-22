@@ -30,3 +30,8 @@ export const idb = {
     });
   }
 };
+export async function setJSON(key, obj){ return idb.set(key, JSON.stringify(obj)); }
+export async function getJSON(key){
+  const s = await idb.get(key);
+  try { return s ? JSON.parse(s) : null; } catch { return null; }
+}
