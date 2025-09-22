@@ -32,4 +32,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("linkAdmin").addEventListener('click', e => { e.preventDefault(); routeTo("admin"); });
   document.getElementById("linkClinical").addEventListener('click', e => { e.preventDefault(); routeTo("clinical"); });
   routeTo("home");
+  initIdleLock({
+  onLock: ()=>{ document.documentElement.style.filter='blur(4px) brightness(0.6)'; },
+  onUnlock: ()=>{ document.documentElement.style.filter=''; }
 });
+enableQuickHide();
+// Optional: add buttons with ids 'btnLock' and 'btnUnlock' in your header if you want manual control.
+// document.getElementById('btnLock')?.addEventListener('click', lock);
+// document.getElementById('btnUnlock')?.addEventListener('click', unlock);
